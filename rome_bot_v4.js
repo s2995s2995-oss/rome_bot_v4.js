@@ -1,6 +1,6 @@
 // ================================================================
 //   🤖 ROME Bot V4.2 - 主程式（雲端版）
-//   修正：STEP2 地址欄位、STEP3 搜尋等待、STEP4 Budget 渲染
+//   策略：智慧監控 + 保底秒數，快速又穩定
 // ================================================================
 window.romeBotEngine = async function() {
     let isPaused = false;
@@ -121,9 +121,9 @@ window.romeBotEngine = async function() {
         if (el) {
             el.focus(); el.click();
             el.value = value;
-            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('input',  { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
-            el.dispatchEvent(new Event('blur', { bubbles: true }));
+            el.dispatchEvent(new Event('blur',   { bubbles: true }));
             return true;
         }
         return false;
@@ -136,9 +136,9 @@ window.romeBotEngine = async function() {
                 el.focus(); el.click();
                 el.value = value;
                 el.setAttribute('value', value);
-                el.dispatchEvent(new Event('input', { bubbles: true }));
+                el.dispatchEvent(new Event('input',  { bubbles: true }));
                 el.dispatchEvent(new Event('change', { bubbles: true }));
-                el.dispatchEvent(new Event('blur', { bubbles: true }));
+                el.dispatchEvent(new Event('blur',   { bubbles: true }));
             }
             return true;
         }
@@ -166,10 +166,12 @@ window.romeBotEngine = async function() {
             logger('🔔 偵測到確認彈窗，自動點擊 OK...');
             await safeClick(okBtn);
             await waitUntilNotBusy();
+            await smartDelay(1000); // 保底 1 秒等彈窗完全關閉
             logger('✅ 彈窗已關閉');
         }
     };
 
+    // ✅ 切換頁籤：智慧監控 + 保底 2 秒
     const switchTab = async (tabName) => {
         logger('🔀 切換至頁籤：' + tabName);
         const tabs = document.querySelectorAll('span.menu-item-title');
@@ -178,7 +180,7 @@ window.romeBotEngine = async function() {
                 await safeClick(tab);
                 await dismissDirtyCheck();
                 await waitUntilNotBusy();
-                await smartDelay(1500);
+                await smartDelay(2000); // 保底 2 秒等頁面渲染
                 logger('✅ 已切換至 [' + tabName + ']');
                 return true;
             }
@@ -204,6 +206,7 @@ window.romeBotEngine = async function() {
                 logger('ℹ️ 已是勾選狀態，跳過。');
             }
             await waitUntilNotBusy();
+            await smartDelay(500); // 保底 0.5 秒
             return true;
         }
         logger('⚠️ 無法定位 Checkbox！', true);
@@ -217,12 +220,14 @@ window.romeBotEngine = async function() {
         if (btn) {
             await safeClick(btn);
             await waitUntilNotBusy();
+            await smartDelay(2000); // 保底 2 秒等名單更新
             return true;
         }
         logger('⚠️ 無法定位 "Add Selections" 按鈕！', true);
         return false;
     };
 
+    // ✅ Save：智慧監控 + 保底 2 秒
     const clickSave = async () => {
         logger('💾 執行 Save 儲存...');
         let sBtn = document.querySelector('button[name="pyCaseHeader_pyWorkPage_5"]');
@@ -231,6 +236,7 @@ window.romeBotEngine = async function() {
             await safeClick(sBtn);
             await dismissDirtyCheck();
             await waitUntilNotBusy(20000);
+            await smartDelay(2000); // 保底 2 秒等儲存完全同步
             logger('✅ Save 完成。');
             return true;
         }
@@ -247,7 +253,7 @@ window.romeBotEngine = async function() {
     panel.style = 'position:fixed;top:15px;right:15px;z-index:9999999;width:410px;background:#ffffff;border:2px solid #005a9c;border-radius:12px;box-shadow:0px 6px 20px rgba(0,0,0,0.2);font-family:Arial,sans-serif;font-size:13px;color:#333;';
     panel.innerHTML = `
         <div style="background:#005a9c;color:white;padding:12px;font-weight:bold;border-top-left-radius:9px;border-top-right-radius:9px;display:flex;justify-content:space-between;align-items:center;">
-            <span>🚀 ROME 全自動填表控制台 V4.2（智慧監控版）</span>
+            <span>🚀 ROME 全自動填表控制台 V4.2（穩定版）</span>
             <button id="rome-panel-close" style="background:none;border:none;color:white;font-size:18px;cursor:pointer;">&times;</button>
         </div>
         <div id="rome-panel-body" style="padding:15px;max-height:85vh;overflow-y:auto;">
@@ -362,7 +368,7 @@ window.romeBotEngine = async function() {
             <button id="rome-btn-cancel" style="flex:1;padding:8px;background:#d9534f;color:white;border:none;border-radius:4px;font-weight:bold;cursor:pointer;">❌ 取消退出</button>
         </div>
         <div id="rome-log" style="background:#000;color:#00ff00;font-family:Courier,monospace;font-size:11px;padding:10px;height:300px;overflow-y:auto;border-radius:6px;line-height:1.4;border:1px solid #333;">
-            [系統] V4.2 智慧監控引擎啟動中...<br>
+            [系統] V4.2 穩定版引擎啟動中...<br>
         </div>
     `;
 
@@ -387,16 +393,26 @@ window.romeBotEngine = async function() {
     };
 
     try {
-        logger('🚀 ROME Bot V4.2 正式啟動！');
+        logger('🚀 ROME Bot V4.2 穩定版正式啟動！');
 
-        /* STEP 1: General */
+        /* -----------------------------------------------
+           STEP 1：General 欄位填寫
+        ----------------------------------------------- */
         logger('--- 🌟 STEP 1：General 欄位填寫 ---');
-        await switchTab('General');
+        await switchTab('General'); // 內含保底 2 秒
+
         const nameEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pName"]');
-        if (nameEl) { await safeFillPegaInput('$PpyWorkPage$pEvent$pName', config.gName); logger('✅ 活動名稱已填入'); }
+        if (nameEl) {
+            await safeFillPegaInput('$PpyWorkPage$pEvent$pName', config.gName);
+            await smartDelay(500); // 保底 0.5 秒
+            logger('✅ 活動名稱已填入');
+        }
+
         await safeFillPegaInput('$PpyWorkPage$pEvent$pDescription', config.gObjNeed);
         await safeFillPegaInput('$PpyWorkPage$pEvent$pLegitimateNeed', config.gObjNeed);
+        await smartDelay(500); // 保底 0.5 秒
         logger('✅ 活動目的與正當需求已同步注入');
+
         const plannerEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pPlanner$ppyFullName"]');
         if (plannerEl) {
             logger('👤 填寫 Event Planner...');
@@ -406,18 +422,21 @@ window.romeBotEngine = async function() {
             plannerEl.value = config.gPlanner;
             plannerEl.dispatchEvent(new Event('input', { bubbles: true }));
             await waitUntilNotBusy(8000);
+            await smartDelay(1000); // 保底 1 秒等下拉選單
             plannerEl.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, keyCode: 40, key: 'ArrowDown' }));
-            await smartDelay(600);
+            await smartDelay(800);
             plannerEl.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, keyCode: 13, key: 'Enter' }));
-            await smartDelay(600);
+            await smartDelay(800);
             plannerEl.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, keyCode: 40, key: 'ArrowDown' }));
-            await smartDelay(600);
+            await smartDelay(800);
             plannerEl.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, keyCode: 13, key: 'Enter' }));
             plannerEl.dispatchEvent(new Event('change', { bubbles: true }));
-            plannerEl.dispatchEvent(new Event('blur', { bubbles: true }));
+            plannerEl.dispatchEvent(new Event('blur',   { bubbles: true }));
             await waitUntilNotBusy();
+            await smartDelay(1000); // 保底 1 秒
             logger('✅ Event Planner 填寫完成');
         }
+
         logger('📅 偵測日期格式...');
         let dateEl = document.querySelector('input[name="$PpyWorkPage$pEvent$pStartDate"]');
         let formatPattern = 'MM/DD/YYYY';
@@ -438,9 +457,11 @@ window.romeBotEngine = async function() {
             let finalDate = (formatPattern === 'YYYY/MM/DD') ? y+'/'+m+'/'+d : m+'/'+d+'/'+y;
             await safeFillPegaInput('$PpyWorkPage$pEvent$pStartDate', finalDate);
             await safeFillPegaInput('$PpyWorkPage$pEvent$pEndDate', finalDate);
+            await smartDelay(500); // 保底 0.5 秒
             logger('📅 日期已注入：' + finalDate);
         }
         await waitUntilNotBusy();
+
         const productEl = await waitForElement('input[data-target="$PpyWorkPage$pEvent$pProducts"]');
         if (productEl) {
             logger('📦 啟動 Product 手打模擬器...');
@@ -450,211 +471,438 @@ window.romeBotEngine = async function() {
             for (let char of config.gProduct) {
                 productEl.value += char;
                 productEl.dispatchEvent(new Event('input', { bubbles: true }));
-                productEl.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: char }));
+                productEl.dispatchEvent(new KeyboardEvent('keydown',  { bubbles: true, key: char }));
                 productEl.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, key: char }));
-                productEl.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: char }));
+                productEl.dispatchEvent(new KeyboardEvent('keyup',    { bubbles: true, key: char }));
                 await smartDelay(150);
             }
             await waitUntilNotBusy(8000);
+            await smartDelay(1500); // 保底 1.5 秒等下拉選單
             productEl.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowDown', keyCode: 40 }));
             await smartDelay(800);
             ['keydown','keypress','keyup'].forEach(t => productEl.dispatchEvent(new KeyboardEvent(t, { key:'Enter', keyCode:13, bubbles:true })));
             productEl.dispatchEvent(new Event('change', { bubbles: true }));
-            productEl.dispatchEvent(new Event('blur', { bubbles: true }));
+            productEl.dispatchEvent(new Event('blur',   { bubbles: true }));
             await waitUntilNotBusy(8000);
+            await smartDelay(1500); // 保底 1.5 秒等選取完成
             logger('✅ Product 填寫完成');
         }
-        await clickSave();
+        await clickSave(); // 內含保底 2 秒
 
-        /* STEP 2: Logistics ✅ 修正：場地名稱填完後加 blur + 延長等待 */
+        /* -----------------------------------------------
+           STEP 2：Logistics 地點填寫
+        ----------------------------------------------- */
         logger('--- 📍 STEP 2：Logistics 地點填寫 ---');
-        await switchTab('Logistics');
+        await switchTab('Logistics'); // 內含保底 2 秒
+
         const approachSel = await waitForElement('select[name="$PpyWorkPage$pEvent$pLogistics$pLogisticsApproach"]', 15000);
-        if (approachSel) { approachSel.value = 'Face2Face'; approachSel.dispatchEvent(new Event('change', { bubbles: true })); await waitUntilNotBusy(); logger('✅ 活動形式設為 Face2Face'); }
+        if (approachSel) {
+            approachSel.value = 'Face2Face';
+            approachSel.dispatchEvent(new Event('change', { bubbles: true }));
+            await waitUntilNotBusy();
+            await smartDelay(1500); // 保底 1.5 秒等頁面更新
+            logger('✅ 活動形式設為 Face2Face');
+        }
+
         const addVenueBtn = await waitForElement('button[name^="VenueListActions_"]', 15000);
-        if (addVenueBtn) { await safeClick(addVenueBtn); await waitUntilNotBusy(); logger('✅ Add Venue 彈窗已開啟'); }
+        if (addVenueBtn) {
+            await safeClick(addVenueBtn);
+            await waitUntilNotBusy();
+            await smartDelay(2000); // 保底 2 秒等彈窗出現
+            logger('✅ Add Venue 彈窗已開啟');
+        }
+
         const venueTypeSel = await waitForElement('select[name="$PTempVenueDetail$pVenueType"]');
-        if (venueTypeSel) { venueTypeSel.value = 'Other Offsite Venue'; venueTypeSel.dispatchEvent(new Event('change', { bubbles: true })); await waitUntilNotBusy(); logger('✅ 場地類型設為 Other Offsite Venue'); }
+        if (venueTypeSel) {
+            venueTypeSel.value = 'Other Offsite Venue';
+            venueTypeSel.dispatchEvent(new Event('change', { bubbles: true }));
+            await waitUntilNotBusy();
+            await smartDelay(2000); // 保底 2 秒等聯動欄位
+            logger('✅ 場地類型設為 Other Offsite Venue');
+        }
+
         const venueNameEl = await waitForElement('input[name="$PTempVenueDetail$pVenue"]');
         if (venueNameEl) {
             await fillPegaInputHollowBomb('$PTempVenueDetail$pVenue', config.vVenueName);
-            venueNameEl.dispatchEvent(new Event('blur', { bubbles: true })); // ✅ 修正：觸發 blur 讓地址欄出現
+            venueNameEl.dispatchEvent(new Event('blur', { bubbles: true }));
             await waitUntilNotBusy();
-            await smartDelay(1500); // ✅ 修正：等地址欄渲染
+            await smartDelay(2000); // 保底 2 秒等地址欄出現
             logger('✅ 場地名稱：' + config.vVenueName);
         }
-        const venueAddrEl = await waitForElement('input[name="$PTempVenueDetail$pVenueAddress"]', 15000); // ✅ 修正：延長到 15 秒
+
+        const venueAddrEl = await waitForElement('input[name="$PTempVenueDetail$pVenueAddress"]', 15000);
         if (venueAddrEl) {
             await fillPegaInputHollowBomb('$PTempVenueDetail$pVenueAddress', config.vVenueAddress);
             venueAddrEl.dispatchEvent(new Event('blur', { bubbles: true }));
             await waitUntilNotBusy();
+            await smartDelay(1000); // 保底 1 秒
             logger('✅ 場地地址：' + config.vVenueAddress);
         }
-        const addBtn = await waitForButton('Add', 15000); // ✅ 修正：延長到 15 秒
-        if (addBtn) { await safeClick(addBtn); await waitUntilNotBusy(); logger('✅ 場地已新增'); }
-        await clickSave();
 
-        /* STEP 3: Invitees ✅ 修正：搜尋後額外等待 3 秒 */
+        const addBtn = await waitForButton('Add', 15000);
+        if (addBtn) {
+            await safeClick(addBtn);
+            await waitUntilNotBusy();
+            await smartDelay(2000); // 保底 2 秒等場地新增完成
+            logger('✅ 場地已新增');
+        }
+        await clickSave(); // 內含保底 2 秒
+
+        /* -----------------------------------------------
+           STEP 3：Invitees 人員填寫
+        ----------------------------------------------- */
         logger('--- 👥 STEP 3：Invitees 人員填寫 ---');
-        await switchTab('Invitees');
+        await switchTab('Invitees'); // 內含保底 2 秒
+
         await waitForElement('input[name="$PpyWorkPage$pEvent$pInvitees$l3$ppyCount"]');
-        await fillPegaInputHollowBomb('$PpyWorkPage$pEvent$pInvitees$l3$ppyCount', config.vModCount); await waitUntilNotBusy(); logger('✅ Mod 人數：' + config.vModCount);
-        await fillPegaInputHollowBomb('$PpyWorkPage$pEvent$pInvitees$l4$ppyCount', config.vPassiveCount); await waitUntilNotBusy(); logger('✅ Passive 人數：' + config.vPassiveCount);
-        await fillPegaInputHollowBomb('$PpyWorkPage$pEvent$pInvitees$l5$ppyCount', config.vSpeakerCount); await waitUntilNotBusy(); logger('✅ Speaker 人數：' + config.vSpeakerCount);
-        await fillPegaInputHollowBomb('$PpyWorkPage$pEvent$pInvitees$l6$ppyCount', config.vStaffCount); await waitUntilNotBusy(); logger('✅ Staff 人數：' + config.vStaffCount);
+        await fillPegaInputHollowBomb('$PpyWorkPage$pEvent$pInvitees$l3$ppyCount', config.vModCount);
+        await waitUntilNotBusy(); await smartDelay(500);
+        logger('✅ Mod 人數：' + config.vModCount);
+
+        await fillPegaInputHollowBomb('$PpyWorkPage$pEvent$pInvitees$l4$ppyCount', config.vPassiveCount);
+        await waitUntilNotBusy(); await smartDelay(500);
+        logger('✅ Passive 人數：' + config.vPassiveCount);
+
+        await fillPegaInputHollowBomb('$PpyWorkPage$pEvent$pInvitees$l5$ppyCount', config.vSpeakerCount);
+        await waitUntilNotBusy(); await smartDelay(500);
+        logger('✅ Speaker 人數：' + config.vSpeakerCount);
+
+        await fillPegaInputHollowBomb('$PpyWorkPage$pEvent$pInvitees$l6$ppyCount', config.vStaffCount);
+        await waitUntilNotBusy(); await smartDelay(500);
+        logger('✅ Staff 人數：' + config.vStaffCount);
+
         if (config.vSpeakerName || config.vModName) {
             logger('🔍 展開 Actual 區塊...');
-            const actualHeader = Array.from(document.querySelectorAll('h4.layout-group-item-title')).find(el => el.textContent.trim().includes('Actual'));
-            if (actualHeader) { await safeClick(actualHeader); await waitUntilNotBusy(); }
+            const actualHeader = Array.from(document.querySelectorAll('h4.layout-group-item-title'))
+                .find(el => el.textContent.trim().includes('Actual'));
+            if (actualHeader) {
+                await safeClick(actualHeader);
+                await waitUntilNotBusy();
+                await smartDelay(1500); // 保底 1.5 秒等區塊展開
+            }
+
             logger('➕ 點擊 Add Invitees...');
             let addInviteesBtn = await waitForElement('button[name^="InviteeListActionsForEvents_pyWorkPage_"]');
             if (!addInviteesBtn) addInviteesBtn = Array.from(document.querySelectorAll('button')).find(el => el.textContent.trim().includes('Add Invitees'));
-            if (addInviteesBtn) { await safeClick(addInviteesBtn); await waitUntilNotBusy(); }
+            if (addInviteesBtn) {
+                await safeClick(addInviteesBtn);
+                await waitUntilNotBusy();
+                await smartDelay(2000); // 保底 2 秒等彈窗
+            }
+
             logger('🔍 展開 Search 面板...');
             const searchLink = await waitForElement('a[name^="SearchInviteeSourceOptions_NewInvitee_"]');
-            if (searchLink) { await safeClick(searchLink); await waitUntilNotBusy(); }
+            if (searchLink) {
+                await safeClick(searchLink);
+                await waitUntilNotBusy();
+                await smartDelay(1500); // 保底 1.5 秒等搜尋面板
+            }
 
+            /* 第一輪：Speaker */
             if (config.vSpeakerName) {
                 const sName = splitChineseName(config.vSpeakerName);
                 logger('🗣️ [第一輪] 搜尋演講者：' + config.vSpeakerName);
+
                 const fn1 = await waitForElement('input[name="$PTempNewInviteePage$pFirstName"]');
                 if (fn1) await safeFillPegaInput('$PTempNewInviteePage$pFirstName', sName.first);
-                await waitUntilNotBusy();
+                await smartDelay(500);
+
                 const ln1 = await waitForElement('input[name="$PTempNewInviteePage$pLastName"]');
                 if (ln1) await safeFillPegaInput('$PTempNewInviteePage$pLastName', sName.last);
-                await waitUntilNotBusy();
+                await smartDelay(500);
+
                 let sb1 = await waitForButton('Search', 8000);
                 if (!sb1) sb1 = document.querySelector('button[name="SearchExternalInviteeButtons_TempNewInviteePage_1"]');
                 if (sb1) {
                     await safeClick(sb1);
                     await waitUntilNotBusy(12000);
-                    await smartDelay(3000); // ✅ 修正：等搜尋結果渲染
+                    await smartDelay(3000); // 保底 3 秒等搜尋結果
                 }
+
                 const ok1 = await checkFirstResultCheckbox();
-                if (ok1) await clickAddSelections();
+                if (ok1) await clickAddSelections(); // 內含保底 2 秒
+
                 logger('🧹 清除第一輪搜尋紀錄...');
                 const cl1 = await waitForElement('a[name^="SearchInviteeSourceOptions_NewInvitee_"]', 5000);
                 if (cl1) {
-                    await safeClick(cl1); await waitUntilNotBusy();
+                    await safeClick(cl1);
+                    await waitUntilNotBusy();
+                    await smartDelay(1000);
                     await safeFillPegaInput('$PTempNewInviteePage$pFirstName', '');
                     await safeFillPegaInput('$PTempNewInviteePage$pLastName', '');
                     const cb1 = await waitForButton('Cancel', 5000);
-                    if (cb1) { await safeClick(cb1); await waitUntilNotBusy(); logger('✅ 第一輪清除完成'); }
+                    if (cb1) {
+                        await safeClick(cb1);
+                        await waitUntilNotBusy();
+                        await smartDelay(2000); // 保底 2 秒等彈窗完全關閉
+                        logger('✅ 第一輪清除完成');
+                    }
                 }
             }
 
+            /* 第二輪：Moderator */
             if (config.vModName) {
                 const mName = splitChineseName(config.vModName);
                 logger('👤 [第二輪] 搜尋主持人：' + config.vModName);
+
                 const sl2 = await waitForElement('a[name^="SearchInviteeSourceOptions_NewInvitee_"]', 8000);
-                if (sl2) { await safeClick(sl2); await waitUntilNotBusy(); }
+                if (sl2) {
+                    await safeClick(sl2);
+                    await waitUntilNotBusy();
+                    await smartDelay(1500); // 保底 1.5 秒
+                }
+
                 const fn2 = await waitForElement('input[name="$PTempNewInviteePage$pFirstName"]');
                 if (fn2) await safeFillPegaInput('$PTempNewInviteePage$pFirstName', mName.first);
-                await waitUntilNotBusy();
+                await smartDelay(500);
+
                 const ln2 = await waitForElement('input[name="$PTempNewInviteePage$pLastName"]');
                 if (ln2) await safeFillPegaInput('$PTempNewInviteePage$pLastName', mName.last);
-                await waitUntilNotBusy();
+                await smartDelay(500);
+
                 let sb2 = await waitForButton('Search', 8000);
                 if (!sb2) sb2 = document.querySelector('button[name="SearchExternalInviteeButtons_TempNewInviteePage_1"]');
                 if (sb2) {
                     await safeClick(sb2);
                     await waitUntilNotBusy(12000);
-                    await smartDelay(3000); // ✅ 修正：等搜尋結果渲染
+                    await smartDelay(3000); // 保底 3 秒等搜尋結果
                 }
+
                 const ok2 = await checkFirstResultCheckbox();
-                if (ok2) await clickAddSelections();
+                if (ok2) await clickAddSelections(); // 內含保底 2 秒
             }
 
             logger('📋 展開 Confirmation List...');
-            const confirmHeader = Array.from(document.querySelectorAll('h4.layout-group-item-title')).find(el => el.textContent.trim().includes('Confirmation List'));
-            if (confirmHeader) { await safeClick(confirmHeader); await waitUntilNotBusy(); }
+            const confirmHeader = Array.from(document.querySelectorAll('h4.layout-group-item-title'))
+                .find(el => el.textContent.trim().includes('Confirmation List'));
+            if (confirmHeader) {
+                await safeClick(confirmHeader);
+                await waitUntilNotBusy();
+                await smartDelay(1500); // 保底 1.5 秒
+            }
+
             logger('📤 點擊 Submit 提交名單...');
             let submitBtn = await waitForButton('Submit', 8000);
             if (!submitBtn) submitBtn = document.querySelector('button[name^="SubmitInviteesActionButtons_NewInvitee_"]');
-            if (submitBtn) { await safeClick(submitBtn); await waitUntilNotBusy(12000); logger('✅ 名單提交完成'); }
+            if (submitBtn) {
+                await safeClick(submitBtn);
+                await waitUntilNotBusy(12000);
+                await smartDelay(2000); // 保底 2 秒等提交完成
+                logger('✅ 名單提交完成');
+            }
         }
-        await clickSave();
+        await clickSave(); // 內含保底 2 秒
 
-        /* STEP 4: Budget & Cost ✅ 修正：切換後多等 2 秒 + timeout 延長 */
+        /* -----------------------------------------------
+           STEP 4：Budget & Cost 預算填寫
+        ----------------------------------------------- */
         logger('--- 💰 STEP 4：Budget & Cost 預算填寫 ---');
-        await switchTab('Budget & Cost');
-        await smartDelay(2000); // ✅ 修正：等頁面完全渲染
-        const budgetEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pPlannedBudget"]', 15000); // ✅ 修正：延長到 15 秒
+        await switchTab('Budget & Cost'); // 內含保底 2 秒
+        await smartDelay(2000); // 額外保底 2 秒等頁面完全渲染
+
+        const budgetEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pPlannedBudget"]', 15000);
         if (budgetEl) {
             await safeFillPegaInput('$PpyWorkPage$pEvent$pPlannedBudget', config.vBudget);
             ['keydown','keypress','keyup'].forEach(t => budgetEl.dispatchEvent(new KeyboardEvent(t, { key:'Enter', keyCode:13, bubbles:true })));
             await waitForValueChange('input[name="$PpyWorkPage$pEvent$pPlannedBudget"]', '');
             await waitUntilNotBusy();
+            await smartDelay(1500); // 保底 1.5 秒
             logger('✅ 預算金額已填入：' + config.vBudget);
         }
-        let addCostBtn = await waitForElement('button[name^="CostAllocationMenu_"]', 15000); // ✅ 修正：延長到 15 秒
+
+        let addCostBtn = await waitForElement('button[name^="CostAllocationMenu_"]', 15000);
         if (!addCostBtn) addCostBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('Add Cost Center/WBS'));
-        if (addCostBtn) { await safeClick(addCostBtn); await waitUntilNotBusy(); }
+        if (addCostBtn) {
+            await safeClick(addCostBtn);
+            await waitUntilNotBusy();
+            await smartDelay(1500); // 保底 1.5 秒等選單出現
+        }
+
         logger('🔍 尋找 Add Manually 選項...');
         const amStart = Date.now();
         while (Date.now() - amStart < 8000) {
             if (isCancelled) throw new Error('USER_CANCEL');
-            const mi = Array.from(document.querySelectorAll('span, a')).find(el => { const t = el.innerText.trim().toLowerCase(); return (t === 'add manual' || t === 'add manually') && el.offsetWidth > 0; });
-            if (mi) { await safeClick(mi); await waitUntilNotBusy(); logger('✅ 已選擇 Add Manually'); break; }
+            const mi = Array.from(document.querySelectorAll('span, a')).find(el => {
+                const t = el.innerText.trim().toLowerCase();
+                return (t === 'add manual' || t === 'add manually') && el.offsetWidth > 0;
+            });
+            if (mi) {
+                await safeClick(mi);
+                await waitUntilNotBusy();
+                await smartDelay(2000); // 保底 2 秒等欄位出現
+                logger('✅ 已選擇 Add Manually');
+                break;
+            }
             await new Promise(res => setTimeout(res, 250));
         }
-        const wbsEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pCostAllocations$l1$pCostCenter"]');
-        if (wbsEl) { await safeFillPegaInput('$PpyWorkPage$pEvent$pCostAllocations$l1$pCostCenter', config.vWBSCode); await waitUntilNotBusy(); logger('✅ WBS 碼：' + config.vWBSCode); }
-        const invTypeEl = await waitForElement('select[name="$PpyWorkPage$pEvent$pCostAllocations$l1$pCostInviteeType"]');
-        if (invTypeEl) { invTypeEl.value = 'External'; invTypeEl.dispatchEvent(new Event('change', { bubbles: true })); await waitUntilNotBusy(); logger('✅ 費用類型設為 External'); }
-        const pctEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pCostAllocations$l1$pPercentageInput"]');
-        if (pctEl) { await safeFillPegaInput('$PpyWorkPage$pEvent$pCostAllocations$l1$pPercentageInput', '100'); await waitUntilNotBusy(); logger('✅ 分配比例設為 100%'); }
-        await clickSave();
 
-        /* STEP 5: Approvers */
+        const wbsEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pCostAllocations$l1$pCostCenter"]');
+        if (wbsEl) {
+            await safeFillPegaInput('$PpyWorkPage$pEvent$pCostAllocations$l1$pCostCenter', config.vWBSCode);
+            await waitUntilNotBusy();
+            await smartDelay(1000); // 保底 1 秒
+            logger('✅ WBS 碼：' + config.vWBSCode);
+        }
+
+        const invTypeEl = await waitForElement('select[name="$PpyWorkPage$pEvent$pCostAllocations$l1$pCostInviteeType"]');
+        if (invTypeEl) {
+            invTypeEl.value = 'External';
+            invTypeEl.dispatchEvent(new Event('change', { bubbles: true }));
+            await waitUntilNotBusy();
+            await smartDelay(1000); // 保底 1 秒
+            logger('✅ 費用類型設為 External');
+        }
+
+        const pctEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pCostAllocations$l1$pPercentageInput"]');
+        if (pctEl) {
+            await safeFillPegaInput('$PpyWorkPage$pEvent$pCostAllocations$l1$pPercentageInput', '100');
+            await waitUntilNotBusy();
+            await smartDelay(500); // 保底 0.5 秒
+            logger('✅ 分配比例設為 100%');
+        }
+        await clickSave(); // 內含保底 2 秒
+
+        /* -----------------------------------------------
+           STEP 5：Approvers 簽核填寫
+        ----------------------------------------------- */
         logger('--- 👑 STEP 5：Approvers 簽核填寫 ---');
-        await switchTab('Approvers');
+        await switchTab('Approvers'); // 內含保底 2 秒
+
         const addApprBtn = await waitForButton('Add Event Approver');
-        if (addApprBtn) { await safeClick(addApprBtn); await waitUntilNotBusy(); logger('✅ Add Event Approver 彈窗已開啟'); }
+        if (addApprBtn) {
+            await safeClick(addApprBtn);
+            await waitUntilNotBusy();
+            await smartDelay(2000); // 保底 2 秒等彈窗
+            logger('✅ Add Event Approver 彈窗已開啟');
+        }
+
         const approverEmailEl = await waitForElement('input[name="$PD_PlaceHolder$pEmailAddress"]');
-        if (approverEmailEl) { await safeFillPegaInput('$PD_PlaceHolder$pEmailAddress', config.vApprover); logger('✅ 審查人 Email：' + config.vApprover); }
+        if (approverEmailEl) {
+            await safeFillPegaInput('$PD_PlaceHolder$pEmailAddress', config.vApprover);
+            await smartDelay(500);
+            logger('✅ 審查人 Email：' + config.vApprover);
+        }
         await waitUntilNotBusy();
+
         let apprSearchBtn = await waitForElement('button[name^="SearchEventApprover_"]');
         if (!apprSearchBtn) apprSearchBtn = await waitForButton('Search', 8000);
-        if (apprSearchBtn) { await safeClick(apprSearchBtn); await waitUntilNotBusy(12000); logger('✅ 搜尋完成'); }
-        const apprCheckbox = await waitForElement('input[name^="$PD_InviteeApproverSearchAtEvent_"][type="checkbox"]', 10000);
-        if (apprCheckbox) { await safeClick(apprCheckbox); apprCheckbox.dispatchEvent(new Event('change', { bubbles: true })); await waitUntilNotBusy(); logger('✅ 已勾選審查人'); }
-        const roleEl = await waitForElement('select[name="$PNewEventApprover$pApproverType"]');
-        if (roleEl) { roleEl.value = config.vApproverRole; roleEl.dispatchEvent(new Event('change', { bubbles: true })); await waitUntilNotBusy(); logger('✅ 角色設為：' + config.vApproverRole); }
-        const apprAddSelBtn = await waitForButton('Add Selections', 8000);
-        if (apprAddSelBtn) { await safeClick(apprAddSelBtn); await waitUntilNotBusy(10000); logger('✅ 審查人已加入'); }
-        await clickSave();
+        if (apprSearchBtn) {
+            await safeClick(apprSearchBtn);
+            await waitUntilNotBusy(12000);
+            await smartDelay(3000); // 保底 3 秒等搜尋結果
+            logger('✅ 搜尋完成');
+        }
 
-        /* STEP 6: Attachments & Links */
+        const apprCheckbox = await waitForElement('input[name^="$PD_InviteeApproverSearchAtEvent_"][type="checkbox"]', 10000);
+        if (apprCheckbox) {
+            await safeClick(apprCheckbox);
+            apprCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+            await waitUntilNotBusy();
+            await smartDelay(1000); // 保底 1 秒
+            logger('✅ 已勾選審查人');
+        }
+
+        const roleEl = await waitForElement('select[name="$PNewEventApprover$pApproverType"]');
+        if (roleEl) {
+            roleEl.value = config.vApproverRole;
+            roleEl.dispatchEvent(new Event('change', { bubbles: true }));
+            await waitUntilNotBusy();
+            await smartDelay(1000); // 保底 1 秒
+            logger('✅ 角色設為：' + config.vApproverRole);
+        }
+
+        const apprAddSelBtn = await waitForButton('Add Selections', 8000);
+        if (apprAddSelBtn) {
+            await safeClick(apprAddSelBtn);
+            await waitUntilNotBusy(10000);
+            await smartDelay(2000); // 保底 2 秒
+            logger('✅ 審查人已加入');
+        }
+        await clickSave(); // 內含保底 2 秒
+
+        /* -----------------------------------------------
+           STEP 6：Attachments & Links 附件連結
+        ----------------------------------------------- */
         logger('--- 📁 STEP 6：Attachments & Links 附件連結 ---');
-        const attTab = Array.from(document.querySelectorAll('.menu-item-title')).find(el => el.innerText.includes('Attachments & Links'));
-        if (attTab) { await safeClick(attTab); await dismissDirtyCheck(); await waitUntilNotBusy(); await smartDelay(1500); logger('✅ 已切換至 Attachments & Links'); }
+        const attTab = Array.from(document.querySelectorAll('.menu-item-title'))
+            .find(el => el.innerText.includes('Attachments & Links'));
+        if (attTab) {
+            await safeClick(attTab);
+            await dismissDirtyCheck();
+            await waitUntilNotBusy();
+            await smartDelay(2000); // 保底 2 秒
+            logger('✅ 已切換至 Attachments & Links');
+        }
+
         let addLinkMenuBtn = await waitForElement("a[name^='AttachmentAndLinksActions_D_GetContractAttachmentTypes_']", 8000);
         if (!addLinkMenuBtn) addLinkMenuBtn = await waitForElement("a[name^='AttachmentAndLinksActions_']", 5000);
-        if (addLinkMenuBtn) { await safeClick(addLinkMenuBtn); await waitUntilNotBusy(); }
+        if (addLinkMenuBtn) {
+            await safeClick(addLinkMenuBtn);
+            await waitUntilNotBusy();
+            await smartDelay(1500); // 保底 1.5 秒等選單
+        }
+
         logger('🔍 尋找 Add Link 選項...');
         const alStart = Date.now();
         while (Date.now() - alStart < 8000) {
             if (isCancelled) throw new Error('USER_CANCEL');
-            const li = Array.from(document.querySelectorAll('span, a')).find(el => el.innerText.trim().toLowerCase() === 'add link' && el.offsetWidth > 0);
-            if (li) { await safeClick(li); await waitUntilNotBusy(); logger('✅ 已點擊 Add Link'); break; }
+            const li = Array.from(document.querySelectorAll('span, a'))
+                .find(el => el.innerText.trim().toLowerCase() === 'add link' && el.offsetWidth > 0);
+            if (li) {
+                await safeClick(li);
+                await waitUntilNotBusy();
+                await smartDelay(2000); // 保底 2 秒等彈窗
+                logger('✅ 已點擊 Add Link');
+                break;
+            }
             await new Promise(res => setTimeout(res, 250));
         }
-        const typeSelEl = await waitForElement('select[name="$PpyAttachmentPage$pID"]');
-        if (typeSelEl) { typeSelEl.value = '1'; typeSelEl.dispatchEvent(new Event('change', { bubbles: true })); await waitUntilNotBusy(); }
-        const noteEl = await waitForElement('input[name="$PpyAttachmentPage$ppyNote"]');
-        if (noteEl) { noteEl.focus(); noteEl.value = 'Agenda'; noteEl.dispatchEvent(new Event('input', { bubbles: true })); noteEl.dispatchEvent(new Event('change', { bubbles: true })); logger('✅ 備註填入：Agenda'); }
-        const urlEl = await waitForElement('input[name="$PpyAttachmentPage$ppyURL"]');
-        if (urlEl) { urlEl.focus(); urlEl.value = config.vAgendaURL; urlEl.dispatchEvent(new Event('input', { bubbles: true })); urlEl.dispatchEvent(new Event('change', { bubbles: true })); urlEl.dispatchEvent(new Event('blur', { bubbles: true })); logger('✅ 議程連結填入完成'); }
-        await waitUntilNotBusy();
-        const modalSubmit = await waitForElement('#ModalButtonSubmit', 8000);
-        if (modalSubmit) { await safeClick(modalSubmit); await waitUntilNotBusy(); logger('✅ 附件連結已提交'); }
 
-        /* STEP 7: 最終存檔 */
+        const typeSelEl = await waitForElement('select[name="$PpyAttachmentPage$pID"]');
+        if (typeSelEl) {
+            typeSelEl.value = '1';
+            typeSelEl.dispatchEvent(new Event('change', { bubbles: true }));
+            await waitUntilNotBusy();
+            await smartDelay(1500); // 保底 1.5 秒等欄位出現
+        }
+
+        const noteEl = await waitForElement('input[name="$PpyAttachmentPage$ppyNote"]');
+        if (noteEl) {
+            noteEl.focus();
+            noteEl.value = 'Agenda';
+            noteEl.dispatchEvent(new Event('input',  { bubbles: true }));
+            noteEl.dispatchEvent(new Event('change', { bubbles: true }));
+            await smartDelay(500);
+            logger('✅ 備註填入：Agenda');
+        }
+
+        const urlEl = await waitForElement('input[name="$PpyAttachmentPage$ppyURL"]');
+        if (urlEl) {
+            urlEl.focus();
+            urlEl.value = config.vAgendaURL;
+            urlEl.dispatchEvent(new Event('input',  { bubbles: true }));
+            urlEl.dispatchEvent(new Event('change', { bubbles: true }));
+            urlEl.dispatchEvent(new Event('blur',   { bubbles: true }));
+            await smartDelay(500);
+            logger('✅ 議程連結填入完成');
+        }
+        await waitUntilNotBusy();
+
+        const modalSubmit = await waitForElement('#ModalButtonSubmit', 8000);
+        if (modalSubmit) {
+            await safeClick(modalSubmit);
+            await waitUntilNotBusy();
+            await smartDelay(2000); // 保底 2 秒等提交完成
+            logger('✅ 附件連結已提交');
+        }
+
+        /* -----------------------------------------------
+           STEP 7：最終大總存檔
+        ----------------------------------------------- */
         logger('--- 🏁 STEP 7：最終大總存檔 ---');
-        await clickSave();
+        await clickSave(); // 內含保底 2 秒
         logger('🎉 【大獲全勝】！全案配置完成，ROME Bot V4.2 執行結束！');
-        document.getElementById('rome-btn-pause').disabled = true;
+        document.getElementById('rome-btn-pause').disabled  = true;
         document.getElementById('rome-btn-cancel').disabled = true;
 
     } catch (err) {
