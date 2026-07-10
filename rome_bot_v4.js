@@ -1,13 +1,11 @@
 // ================================================================
-//   🤖 ROME Bot V4 - 主程式（雲端版）
-//   更新此檔案即可讓所有同事自動使用最新版本
+//   🤖 ROME Bot V4.2 - 主程式（雲端版）
+//   修正：STEP2 地址欄位、STEP3 搜尋等待、STEP4 Budget 渲染
 // ================================================================
-
 window.romeBotEngine = async function() {
     let isPaused = false;
     let isCancelled = false;
 
-    // 移除舊面板
     const oldPanel = document.getElementById('rome-control-panel');
     if (oldPanel) oldPanel.remove();
 
@@ -249,7 +247,7 @@ window.romeBotEngine = async function() {
     panel.style = 'position:fixed;top:15px;right:15px;z-index:9999999;width:410px;background:#ffffff;border:2px solid #005a9c;border-radius:12px;box-shadow:0px 6px 20px rgba(0,0,0,0.2);font-family:Arial,sans-serif;font-size:13px;color:#333;';
     panel.innerHTML = `
         <div style="background:#005a9c;color:white;padding:12px;font-weight:bold;border-top-left-radius:9px;border-top-right-radius:9px;display:flex;justify-content:space-between;align-items:center;">
-            <span>🚀 ROME 全自動填表控制台 V4（智慧監控版）</span>
+            <span>🚀 ROME 全自動填表控制台 V4.2（智慧監控版）</span>
             <button id="rome-panel-close" style="background:none;border:none;color:white;font-size:18px;cursor:pointer;">&times;</button>
         </div>
         <div id="rome-panel-body" style="padding:15px;max-height:85vh;overflow-y:auto;">
@@ -364,7 +362,7 @@ window.romeBotEngine = async function() {
             <button id="rome-btn-cancel" style="flex:1;padding:8px;background:#d9534f;color:white;border:none;border-radius:4px;font-weight:bold;cursor:pointer;">❌ 取消退出</button>
         </div>
         <div id="rome-log" style="background:#000;color:#00ff00;font-family:Courier,monospace;font-size:11px;padding:10px;height:300px;overflow-y:auto;border-radius:6px;line-height:1.4;border:1px solid #333;">
-            [系統] V4 智慧監控引擎啟動中...<br>
+            [系統] V4.2 智慧監控引擎啟動中...<br>
         </div>
     `;
 
@@ -389,7 +387,9 @@ window.romeBotEngine = async function() {
     };
 
     try {
-        logger('🚀 ROME Bot V4 正式啟動！');
+        logger('🚀 ROME Bot V4.2 正式啟動！');
+
+        /* STEP 1: General */
         logger('--- 🌟 STEP 1：General 欄位填寫 ---');
         await switchTab('General');
         const nameEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pName"]');
@@ -465,6 +465,8 @@ window.romeBotEngine = async function() {
             logger('✅ Product 填寫完成');
         }
         await clickSave();
+
+        /* STEP 2: Logistics ✅ 修正：場地名稱填完後加 blur + 延長等待 */
         logger('--- 📍 STEP 2：Logistics 地點填寫 ---');
         await switchTab('Logistics');
         const approachSel = await waitForElement('select[name="$PpyWorkPage$pEvent$pLogistics$pLogisticsApproach"]', 15000);
@@ -474,12 +476,25 @@ window.romeBotEngine = async function() {
         const venueTypeSel = await waitForElement('select[name="$PTempVenueDetail$pVenueType"]');
         if (venueTypeSel) { venueTypeSel.value = 'Other Offsite Venue'; venueTypeSel.dispatchEvent(new Event('change', { bubbles: true })); await waitUntilNotBusy(); logger('✅ 場地類型設為 Other Offsite Venue'); }
         const venueNameEl = await waitForElement('input[name="$PTempVenueDetail$pVenue"]');
-        if (venueNameEl) { await fillPegaInputHollowBomb('$PTempVenueDetail$pVenue', config.vVenueName); logger('✅ 場地名稱：' + config.vVenueName); }
-        const venueAddrEl = await waitForElement('input[name="$PTempVenueDetail$pVenueAddress"]');
-        if (venueAddrEl) { await fillPegaInputHollowBomb('$PTempVenueDetail$pVenueAddress', config.vVenueAddress); logger('✅ 場地地址：' + config.vVenueAddress); }
-        const addBtn = await waitForButton('Add');
+        if (venueNameEl) {
+            await fillPegaInputHollowBomb('$PTempVenueDetail$pVenue', config.vVenueName);
+            venueNameEl.dispatchEvent(new Event('blur', { bubbles: true })); // ✅ 修正：觸發 blur 讓地址欄出現
+            await waitUntilNotBusy();
+            await smartDelay(1500); // ✅ 修正：等地址欄渲染
+            logger('✅ 場地名稱：' + config.vVenueName);
+        }
+        const venueAddrEl = await waitForElement('input[name="$PTempVenueDetail$pVenueAddress"]', 15000); // ✅ 修正：延長到 15 秒
+        if (venueAddrEl) {
+            await fillPegaInputHollowBomb('$PTempVenueDetail$pVenueAddress', config.vVenueAddress);
+            venueAddrEl.dispatchEvent(new Event('blur', { bubbles: true }));
+            await waitUntilNotBusy();
+            logger('✅ 場地地址：' + config.vVenueAddress);
+        }
+        const addBtn = await waitForButton('Add', 15000); // ✅ 修正：延長到 15 秒
         if (addBtn) { await safeClick(addBtn); await waitUntilNotBusy(); logger('✅ 場地已新增'); }
         await clickSave();
+
+        /* STEP 3: Invitees ✅ 修正：搜尋後額外等待 3 秒 */
         logger('--- 👥 STEP 3：Invitees 人員填寫 ---');
         await switchTab('Invitees');
         await waitForElement('input[name="$PpyWorkPage$pEvent$pInvitees$l3$ppyCount"]');
@@ -498,6 +513,7 @@ window.romeBotEngine = async function() {
             logger('🔍 展開 Search 面板...');
             const searchLink = await waitForElement('a[name^="SearchInviteeSourceOptions_NewInvitee_"]');
             if (searchLink) { await safeClick(searchLink); await waitUntilNotBusy(); }
+
             if (config.vSpeakerName) {
                 const sName = splitChineseName(config.vSpeakerName);
                 logger('🗣️ [第一輪] 搜尋演講者：' + config.vSpeakerName);
@@ -509,7 +525,11 @@ window.romeBotEngine = async function() {
                 await waitUntilNotBusy();
                 let sb1 = await waitForButton('Search', 8000);
                 if (!sb1) sb1 = document.querySelector('button[name="SearchExternalInviteeButtons_TempNewInviteePage_1"]');
-                if (sb1) { await safeClick(sb1); await waitUntilNotBusy(12000); }
+                if (sb1) {
+                    await safeClick(sb1);
+                    await waitUntilNotBusy(12000);
+                    await smartDelay(3000); // ✅ 修正：等搜尋結果渲染
+                }
                 const ok1 = await checkFirstResultCheckbox();
                 if (ok1) await clickAddSelections();
                 logger('🧹 清除第一輪搜尋紀錄...');
@@ -522,6 +542,7 @@ window.romeBotEngine = async function() {
                     if (cb1) { await safeClick(cb1); await waitUntilNotBusy(); logger('✅ 第一輪清除完成'); }
                 }
             }
+
             if (config.vModName) {
                 const mName = splitChineseName(config.vModName);
                 logger('👤 [第二輪] 搜尋主持人：' + config.vModName);
@@ -535,10 +556,15 @@ window.romeBotEngine = async function() {
                 await waitUntilNotBusy();
                 let sb2 = await waitForButton('Search', 8000);
                 if (!sb2) sb2 = document.querySelector('button[name="SearchExternalInviteeButtons_TempNewInviteePage_1"]');
-                if (sb2) { await safeClick(sb2); await waitUntilNotBusy(12000); }
+                if (sb2) {
+                    await safeClick(sb2);
+                    await waitUntilNotBusy(12000);
+                    await smartDelay(3000); // ✅ 修正：等搜尋結果渲染
+                }
                 const ok2 = await checkFirstResultCheckbox();
                 if (ok2) await clickAddSelections();
             }
+
             logger('📋 展開 Confirmation List...');
             const confirmHeader = Array.from(document.querySelectorAll('h4.layout-group-item-title')).find(el => el.textContent.trim().includes('Confirmation List'));
             if (confirmHeader) { await safeClick(confirmHeader); await waitUntilNotBusy(); }
@@ -548,9 +574,12 @@ window.romeBotEngine = async function() {
             if (submitBtn) { await safeClick(submitBtn); await waitUntilNotBusy(12000); logger('✅ 名單提交完成'); }
         }
         await clickSave();
+
+        /* STEP 4: Budget & Cost ✅ 修正：切換後多等 2 秒 + timeout 延長 */
         logger('--- 💰 STEP 4：Budget & Cost 預算填寫 ---');
         await switchTab('Budget & Cost');
-        const budgetEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pPlannedBudget"]');
+        await smartDelay(2000); // ✅ 修正：等頁面完全渲染
+        const budgetEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pPlannedBudget"]', 15000); // ✅ 修正：延長到 15 秒
         if (budgetEl) {
             await safeFillPegaInput('$PpyWorkPage$pEvent$pPlannedBudget', config.vBudget);
             ['keydown','keypress','keyup'].forEach(t => budgetEl.dispatchEvent(new KeyboardEvent(t, { key:'Enter', keyCode:13, bubbles:true })));
@@ -558,7 +587,7 @@ window.romeBotEngine = async function() {
             await waitUntilNotBusy();
             logger('✅ 預算金額已填入：' + config.vBudget);
         }
-        let addCostBtn = await waitForElement('button[name^="CostAllocationMenu_"]');
+        let addCostBtn = await waitForElement('button[name^="CostAllocationMenu_"]', 15000); // ✅ 修正：延長到 15 秒
         if (!addCostBtn) addCostBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('Add Cost Center/WBS'));
         if (addCostBtn) { await safeClick(addCostBtn); await waitUntilNotBusy(); }
         logger('🔍 尋找 Add Manually 選項...');
@@ -576,6 +605,8 @@ window.romeBotEngine = async function() {
         const pctEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pCostAllocations$l1$pPercentageInput"]');
         if (pctEl) { await safeFillPegaInput('$PpyWorkPage$pEvent$pCostAllocations$l1$pPercentageInput', '100'); await waitUntilNotBusy(); logger('✅ 分配比例設為 100%'); }
         await clickSave();
+
+        /* STEP 5: Approvers */
         logger('--- 👑 STEP 5：Approvers 簽核填寫 ---');
         await switchTab('Approvers');
         const addApprBtn = await waitForButton('Add Event Approver');
@@ -593,6 +624,8 @@ window.romeBotEngine = async function() {
         const apprAddSelBtn = await waitForButton('Add Selections', 8000);
         if (apprAddSelBtn) { await safeClick(apprAddSelBtn); await waitUntilNotBusy(10000); logger('✅ 審查人已加入'); }
         await clickSave();
+
+        /* STEP 6: Attachments & Links */
         logger('--- 📁 STEP 6：Attachments & Links 附件連結 ---');
         const attTab = Array.from(document.querySelectorAll('.menu-item-title')).find(el => el.innerText.includes('Attachments & Links'));
         if (attTab) { await safeClick(attTab); await dismissDirtyCheck(); await waitUntilNotBusy(); await smartDelay(1500); logger('✅ 已切換至 Attachments & Links'); }
@@ -616,11 +649,14 @@ window.romeBotEngine = async function() {
         await waitUntilNotBusy();
         const modalSubmit = await waitForElement('#ModalButtonSubmit', 8000);
         if (modalSubmit) { await safeClick(modalSubmit); await waitUntilNotBusy(); logger('✅ 附件連結已提交'); }
+
+        /* STEP 7: 最終存檔 */
         logger('--- 🏁 STEP 7：最終大總存檔 ---');
         await clickSave();
-        logger('🎉 【大獲全勝】！全案配置完成，ROME Bot V4 執行結束！');
+        logger('🎉 【大獲全勝】！全案配置完成，ROME Bot V4.2 執行結束！');
         document.getElementById('rome-btn-pause').disabled = true;
         document.getElementById('rome-btn-cancel').disabled = true;
+
     } catch (err) {
         if (err.message === 'USER_CANCEL') {
             logger('❌ [系統訊息] 自動化流程已由使用者取消。', true);
