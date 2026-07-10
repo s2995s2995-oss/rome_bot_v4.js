@@ -2,7 +2,17 @@
 //   🤖 ROME Bot V4 - 主程式（雲端版）
 //   更新此檔案即可讓所有同事自動使用最新版本
 // ================================================================
+// rome_bot_v4.js 最開頭加這段
+window.romeBotEngine = async function() {
+    let isPaused = false;
+    let isCancelled = false;
 
+    // ✅ 防止重複：移除舊面板
+    const oldPanel = document.getElementById('rome-control-panel');
+    if (oldPanel) oldPanel.remove();
+
+    // ... 其餘程式碼完全不變 ...
+};
 const romeBotEngine = async function() {
     let isPaused = false;
     let isCancelled = false;
