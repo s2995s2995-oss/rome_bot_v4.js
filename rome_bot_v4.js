@@ -2,20 +2,14 @@
 //   🤖 ROME Bot V4 - 主程式（雲端版）
 //   更新此檔案即可讓所有同事自動使用最新版本
 // ================================================================
-// rome_bot_v4.js 最開頭加這段
+
 window.romeBotEngine = async function() {
     let isPaused = false;
     let isCancelled = false;
 
-    // ✅ 防止重複：移除舊面板
+    // 移除舊面板
     const oldPanel = document.getElementById('rome-control-panel');
     if (oldPanel) oldPanel.remove();
-
-    // ... 其餘程式碼完全不變 ...
-};
-const romeBotEngine = async function() {
-    let isPaused = false;
-    let isCancelled = false;
 
     const smartDelay = async (ms) => {
         let elapsed = 0;
@@ -246,10 +240,6 @@ const romeBotEngine = async function() {
         return false;
     };
 
-    if (document.getElementById('rome-control-panel')) {
-        document.getElementById('rome-control-panel').remove();
-    }
-
     let cache = {};
     try { cache = JSON.parse(localStorage.getItem('rome_bot_cache_v4') || '{}'); } catch (e) {}
     const getV = (k, f) => cache[k] !== undefined ? cache[k] : f;
@@ -400,7 +390,6 @@ const romeBotEngine = async function() {
 
     try {
         logger('🚀 ROME Bot V4 正式啟動！');
-
         logger('--- 🌟 STEP 1：General 欄位填寫 ---');
         await switchTab('General');
         const nameEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pName"]');
@@ -476,7 +465,6 @@ const romeBotEngine = async function() {
             logger('✅ Product 填寫完成');
         }
         await clickSave();
-
         logger('--- 📍 STEP 2：Logistics 地點填寫 ---');
         await switchTab('Logistics');
         const approachSel = await waitForElement('select[name="$PpyWorkPage$pEvent$pLogistics$pLogisticsApproach"]', 15000);
@@ -492,7 +480,6 @@ const romeBotEngine = async function() {
         const addBtn = await waitForButton('Add');
         if (addBtn) { await safeClick(addBtn); await waitUntilNotBusy(); logger('✅ 場地已新增'); }
         await clickSave();
-
         logger('--- 👥 STEP 3：Invitees 人員填寫 ---');
         await switchTab('Invitees');
         await waitForElement('input[name="$PpyWorkPage$pEvent$pInvitees$l3$ppyCount"]');
@@ -561,7 +548,6 @@ const romeBotEngine = async function() {
             if (submitBtn) { await safeClick(submitBtn); await waitUntilNotBusy(12000); logger('✅ 名單提交完成'); }
         }
         await clickSave();
-
         logger('--- 💰 STEP 4：Budget & Cost 預算填寫 ---');
         await switchTab('Budget & Cost');
         const budgetEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pPlannedBudget"]');
@@ -590,7 +576,6 @@ const romeBotEngine = async function() {
         const pctEl = await waitForElement('input[name="$PpyWorkPage$pEvent$pCostAllocations$l1$pPercentageInput"]');
         if (pctEl) { await safeFillPegaInput('$PpyWorkPage$pEvent$pCostAllocations$l1$pPercentageInput', '100'); await waitUntilNotBusy(); logger('✅ 分配比例設為 100%'); }
         await clickSave();
-
         logger('--- 👑 STEP 5：Approvers 簽核填寫 ---');
         await switchTab('Approvers');
         const addApprBtn = await waitForButton('Add Event Approver');
@@ -608,7 +593,6 @@ const romeBotEngine = async function() {
         const apprAddSelBtn = await waitForButton('Add Selections', 8000);
         if (apprAddSelBtn) { await safeClick(apprAddSelBtn); await waitUntilNotBusy(10000); logger('✅ 審查人已加入'); }
         await clickSave();
-
         logger('--- 📁 STEP 6：Attachments & Links 附件連結 ---');
         const attTab = Array.from(document.querySelectorAll('.menu-item-title')).find(el => el.innerText.includes('Attachments & Links'));
         if (attTab) { await safeClick(attTab); await dismissDirtyCheck(); await waitUntilNotBusy(); await smartDelay(1500); logger('✅ 已切換至 Attachments & Links'); }
@@ -632,13 +616,11 @@ const romeBotEngine = async function() {
         await waitUntilNotBusy();
         const modalSubmit = await waitForElement('#ModalButtonSubmit', 8000);
         if (modalSubmit) { await safeClick(modalSubmit); await waitUntilNotBusy(); logger('✅ 附件連結已提交'); }
-
         logger('--- 🏁 STEP 7：最終大總存檔 ---');
         await clickSave();
         logger('🎉 【大獲全勝】！全案配置完成，ROME Bot V4 執行結束！');
         document.getElementById('rome-btn-pause').disabled = true;
         document.getElementById('rome-btn-cancel').disabled = true;
-
     } catch (err) {
         if (err.message === 'USER_CANCEL') {
             logger('❌ [系統訊息] 自動化流程已由使用者取消。', true);
@@ -647,6 +629,3 @@ const romeBotEngine = async function() {
         }
     }
 };
-
-// 自動執行
-window.romeBotEngine = romeBotEngine;
