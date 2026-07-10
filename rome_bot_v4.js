@@ -639,4 +639,4 @@ const romeBotEngine = async function() {
 };
 
 // 自動執行
-romeBotEngine();
+window.romeBotEngine = romeBotEngine;
